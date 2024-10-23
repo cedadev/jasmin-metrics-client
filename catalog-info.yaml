@@ -1,0 +1,12 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: jasmin-metrics-client
+  description: "A library to do requests to elastic search metric data"
+  annotations:
+    github.com/project-slug: cedadev/jasmin-metrics-client
+    backstage.io/source-template: template:default/ceda-github-python-library
+spec:
+  type: library
+  owner: user:default/StTysh
+  lifecycle: experimental
