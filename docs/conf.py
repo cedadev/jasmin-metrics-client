@@ -36,6 +36,7 @@ html_static_path = ["_static"]
 
 # Autoapi Configuration
 autoapi_dirs = ["../jasmin_metrics_client"]
+autoapi_keep_files = True
 master_doc = "index"
 autoapi_options = [
     "members",

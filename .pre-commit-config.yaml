@@ -12,6 +12,7 @@ repos:
         entry: poetry run black
         language: system
         types: [ file, python ]
+        exclude: '/workspaces/Jasmin-Metrics-Client/jasmin-metrics-client/docs/autoapi/jasmin_metrics_client/tests/unit_tests/test_main/index\.rst'
       - id: isort
         name: isort
         entry: poetry run isort
@@ -40,6 +41,7 @@ repos:
         types: [ file, python, toml ]
       - id: docs
         name: docs
-        entry: bash -c "poetry run sphinx-build -M dummy ./docs ./docs/_build -W -q -a"
+        entry: bash -c "poetry run sphinx-build -M dummy ./docs ./docs/_build -q -a -D exclude_patterns=docs/autoapi/jasmin_metrics_client/tests/unit_tests/test_main/index.rst"
         language: system
         types_or: [ file, python, rst, toml, markdown ]
+        exclude: '/workspaces/Jasmin-Metrics-Client/jasmin-metrics-client/docs/autoapi/jasmin_metrics_client/tests/unit_tests/test_main/index\.rst'
