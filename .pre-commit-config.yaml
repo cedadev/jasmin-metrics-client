@@ -12,7 +12,6 @@ repos:
         entry: poetry run black
         language: system
         types: [ file, python ]
-        exclude: '/workspaces/Jasmin-Metrics-Client/jasmin-metrics-client/docs/autoapi/jasmin_metrics_client/tests/unit_tests/test_main/index\.rst'
       - id: isort
         name: isort
         entry: poetry run isort
@@ -27,21 +26,20 @@ repos:
         name: bandit
         entry: poetry run bandit -c pyproject.toml -r .
         language: system
-        types: [ file, python, toml ]
+        types: [ file ]
       - id: xenon
         name: xenon
         entry: bash -c "poetry run xenon -a $(poetry run python -c \"import tomllib; f = open('pyproject.toml','rb') ; data =  tomllib.load(f); f.close(); print(data['tool']['quality']['mccabe']['average'])\") -b $(poetry run python -c \"import tomllib; f = open('pyproject.toml','rb') ; data =  tomllib.load(f); f.close(); print(data['tool']['quality']['mccabe']['block'])\") -m $(poetry run python -c \"import tomllib; f = open('pyproject.toml','rb') ; data =  tomllib.load(f); f.close(); print(data['tool']['quality']['mccabe']['module'])\") . "
         language: system
-        types: [ file, python, toml ]
+        types: [ file]
       - id: mypy
         name: mypy
         # entry: poetry run mypy --no-namespace-packages --exclude Jasmin Metrics Client/models/__init__.py
         entry: poetry run mypy --no-namespace-packages
         language: system
-        types: [ file, python, toml ]
+        types: [python]
       - id: docs
         name: docs
-        entry: bash -c "poetry run sphinx-build -M dummy ./docs ./docs/_build -q -a -D exclude_patterns=docs/autoapi/jasmin_metrics_client/tests/unit_tests/test_main/index.rst"
+        entry: bash -c "poetry run sphinx-build -M dummy ./docs ./docs/_build -q -a"
         language: system
         types_or: [ file, python, rst, toml, markdown ]
-        exclude: '/workspaces/Jasmin-Metrics-Client/jasmin-metrics-client/docs/autoapi/jasmin_metrics_client/tests/unit_tests/test_main/index\.rst'

@@ -4,14 +4,6 @@ jasmin_metrics_client.main
 .. py:module:: jasmin_metrics_client.main
 
 
-Attributes
-----------
-
-.. autoapisummary::
-
-   jasmin_metrics_client.main.metrics_client
-
-
 Classes
 -------
 
@@ -23,16 +15,17 @@ Classes
 Module Contents
 ---------------
 
-.. py:class:: MetricsClient(token=None, hosts=None)
+.. py:class:: MetricsClient(token: Optional[str] = None)
 
-   .. py:method:: get_all_metrics()
-
-
-   .. py:method:: get_metric_labels(metric_name)
+   .. py:attribute:: kwargs
 
 
-   .. py:method:: get_metric(metric_name, filters=None)
+   .. py:method:: get_all_metrics() -> Optional[List[str]]
 
 
-.. py:data:: metrics_client
+   .. py:method:: get_metric_labels(metric_name: str) -> Optional[List[str]]
+
+
+   .. py:method:: get_metric(metric_name: str, filters: Optional[Dict[str, Any]] = None, size: int = 10000) -> Optional[pandas.DataFrame]
+
 

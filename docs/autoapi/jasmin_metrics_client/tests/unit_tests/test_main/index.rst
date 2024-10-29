@@ -52,12 +52,12 @@ Module Contents
        attribute so can be configured by individual tests if required.
 
 
-   .. py:method:: test_get_all_metrics(mock_es_client)
+   .. py:method:: test_get_all_metrics(mock_search: Any) -> None
 
 
-   .. py:method:: test_get_metric_labels(mock_es_client)
+   .. py:method:: test_get_metric_labels(mock_search: Any) -> None
 
 
-   .. py:method:: test_get_metric(mock_es_client)
+   .. py:method:: test_get_metric(mock_search: Any) -> None
 
 
