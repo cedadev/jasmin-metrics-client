@@ -17,15 +17,52 @@ Module Contents
 
 .. py:class:: MetricsClient(token: Optional[str] = None)
 
+   .. py:attribute:: hosts
+
+
    .. py:attribute:: kwargs
 
 
    .. py:method:: get_all_metrics() -> Optional[List[str]]
 
+      Retrieve all unique metric names from the Elasticsearch index.
+
+      Returns:
+          Optional[List[str]]: A list of unique metric names, or None if an error occurs.
+
+
 
    .. py:method:: get_metric_labels(metric_name: str) -> Optional[List[str]]
 
+      Retrieve all labels associated with a specific metric name.
+
+      Args:
+          metric_name (str): The name of the metric.
+
+      Returns:
+          Optional[List[str]]: A list of labels for the metric, or None if an error occurs.
+
+
 
    .. py:method:: get_metric(metric_name: str, filters: Optional[Dict[str, Any]] = None, size: int = 10000) -> Optional[pandas.DataFrame]
+
+      Retrieve metric data for a specific metric name, optionally filtered by labels and time range.
+
+      Args:
+          metric_name (str): The name of the metric.
+          filters (Optional[Dict[str, Any]]): Optional filters for labels and time range. Defaults to None.
+          size (int): The number of results to retrieve. Defaults to 10000.
+
+      Returns:
+          Optional[pd.DataFrame]: A DataFrame containing the metric data, or None if an error occurs.
+
+
+
+   .. py:method:: _build_query(metric_name: str, filters: Optional[Dict[str, Any]] = None, size: int = 10000) -> Dict[str, Any]
+      :staticmethod:
+
+
+      Helper function to build Elasticsearch query.
+
 
 

@@ -8,8 +8,9 @@ from jasmin_metrics_client.main import MetricsClient
 
 
 class TestMetricsClient(unittest.TestCase):
-    @patch("ceda_elasticsearch_tools.CEDAElasticsearchClient.search")
-    def test_get_all_metrics(self, mock_search: Any) -> None:
+    @patch("jasmin_metrics_client.main.Elasticsearch")
+    def test_get_all_metrics(self, MockElasticsearch: Any) -> None:
+        mock_search = MockElasticsearch.return_value.search
         mock_search.return_value = {
             "aggregations": {
                 "unique_metrics": {
@@ -25,7 +26,7 @@ class TestMetricsClient(unittest.TestCase):
             }
         }
 
-        client = MetricsClient()
+        client = MetricsClient("token")
         metrics = client.get_all_metrics()
 
         metrics = metrics or []
@@ -50,8 +51,9 @@ class TestMetricsClient(unittest.TestCase):
             },
         )
 
-    @patch("ceda_elasticsearch_tools.CEDAElasticsearchClient.search")
-    def test_get_metric_labels(self, mock_search: Any) -> None:
+    @patch("jasmin_metrics_client.main.Elasticsearch")
+    def test_get_metric_labels(self, MockElasticsearch: Any) -> None:
+        mock_search = MockElasticsearch.return_value.search
         mock_search.return_value = {
             "hits": {
                 "total": {"value": 10000, "relation": "gte"},
@@ -81,7 +83,7 @@ class TestMetricsClient(unittest.TestCase):
             }
         }
 
-        client = MetricsClient()
+        client = MetricsClient("token")
         labels: List[str] = client.get_metric_labels("power_total_inst") or []
         expected_labels = [
             "metric_name",
@@ -107,8 +109,9 @@ class TestMetricsClient(unittest.TestCase):
             },
         )
 
-    @patch("ceda_elasticsearch_tools.CEDAElasticsearchClient.search")
-    def test_get_metric(self, mock_search: Any) -> None:
+    @patch("jasmin_metrics_client.main.Elasticsearch")
+    def test_get_metric(self, MockElasticsearch: Any) -> None:
+        mock_search = MockElasticsearch.return_value.search
         mock_search.return_value = {
             "hits": {
                 "total": {"value": 105, "relation": "eq"},
@@ -157,11 +160,11 @@ class TestMetricsClient(unittest.TestCase):
             }
         }
 
-        client = MetricsClient()
+        client = MetricsClient("token")
         metric_name = "power_total_inst"
         filters = {
             "labels": {"rack": "12"},
-            "time": {"start": "now-1d/d", "end": "now"},
+            "time": {"start": "2024-10-28T05:03:14Z", "end": "2024-10-28T05:03:14Z"},
         }
 
         result = client.get_metric(metric_name, filters)
@@ -189,7 +192,14 @@ class TestMetricsClient(unittest.TestCase):
                             {"match": {"prometheus.labels.rack.keyword": "12"}},
                         ],
                         "filter": [
-                            {"range": {"@timestamp": {"gte": "now-1d/d", "lte": "now"}}}
+                            {
+                                "range": {
+                                    "@timestamp": {
+                                        "gte": "2024-10-28T05:03:14Z",
+                                        "lte": "2024-10-28T05:03:14Z",
+                                    }
+                                }
+                            }
                         ],
                     }
                 },
