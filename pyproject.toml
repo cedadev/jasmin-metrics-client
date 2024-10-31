@@ -12,7 +12,7 @@ python = ">=3.9,<=3.13"
 pydantic-settings = "^2.3.4"
 stac-pydantic = "^3.1.1"
 pandas = "^2.2.3"
-ceda-elasticsearch-tools = {git = "https://github.com/cedadev/ceda-elasticsearch-tools.git"}
+elasticsearch = "^8.15.1"
 
 [tool.poetry.group.black.dependencies]
 black = "^24.4.2"

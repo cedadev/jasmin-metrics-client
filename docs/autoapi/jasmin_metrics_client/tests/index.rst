@@ -4,8 +4,8 @@ jasmin_metrics_client.tests
 .. py:module:: jasmin_metrics_client.tests
 
 
-Subpackages
------------
+Submodules
+----------
 
 .. toctree::
    :maxdepth: 1

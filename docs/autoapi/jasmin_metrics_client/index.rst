@@ -11,15 +11,6 @@ jasmin_metrics_client
 
 
 
-Subpackages
------------
-
-.. toctree::
-   :maxdepth: 1
-
-   /autoapi/jasmin_metrics_client/tests/index
-
-
 Submodules
 ----------
 
@@ -27,5 +18,6 @@ Submodules
    :maxdepth: 1
 
    /autoapi/jasmin_metrics_client/main/index
+   /autoapi/jasmin_metrics_client/tests/index
 
 

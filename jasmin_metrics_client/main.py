@@ -3,7 +3,7 @@ from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional, Union
 
 import pandas as pd
-from elasticsearch import Elasticsearch, ElasticsearchException
+from elasticsearch import Elasticsearch, ElasticsearchWarning
 
 
 class MetricsClient:
@@ -15,20 +15,22 @@ class MetricsClient:
             token (Optional[str]): The authentication token. Defaults to None.
         """
         hosts = [f"es{i}.ceda.ac.uk:9200" for i in range(1, 9)]
-        kwargs = {"hosts": hosts, "use_ssl": True, "ca_certs": "path/to/CA_ROOT"}
-        if token:
-            kwargs["headers"] = {"Authorization": f"Bearer {token}"}
-        else:
+
+        # Define headers if token is provided
+        headers = {"Authorization": f"Bearer {token}"} if token else {}
+
+        if not token:
             logging.error("No authentication token provided.")
+
         try:
+            # Initialize the Elasticsearch client without the `use_ssl` parameter
             self.es = Elasticsearch(
-                hosts=kwargs.get("hosts"),
-                use_ssl=kwargs.get("use_ssl"),
-                ca_certs=kwargs.get("ca_certs"),
-                headers=kwargs.get("headers", {}),
+                hosts=hosts,
+                headers=headers,
+                # ca_certs="path/to/CA_ROOT"
             )
             logging.info("Elasticsearch client initialized successfully.")
-        except ElasticsearchException as e:
+        except ElasticsearchWarning as e:
             logging.error(f"Error initializing Elasticsearch client: {str(e)}")
             raise e
         except Exception as e:
@@ -58,7 +60,7 @@ class MetricsClient:
         response = None
         try:
             response = self.es.search(index="jasmin-metrics-production", query=query)
-        except ElasticsearchException as e:
+        except ElasticsearchWarning as e:
             logging.error(f"Error fetching all metrics: {str(e)}")
             return None
         except Exception as e:
@@ -95,7 +97,7 @@ class MetricsClient:
         try:
             response = self.es.search(index="jasmin-metrics-production", query=query)
 
-        except ElasticsearchException as e:
+        except ElasticsearchWarning as e:
             logging.error(f"Error fetching metric labels for {metric_name}: {str(e)}")
             return None
 
@@ -131,7 +133,7 @@ class MetricsClient:
         response = None
         try:
             response = self.es.search(index="jasmin-metrics-production", query=query)
-        except ElasticsearchException as e:
+        except ElasticsearchWarning as e:
             logging.error(f"Error fetching metric {metric_name}: {str(e)}")
             return None
         except Exception as e:

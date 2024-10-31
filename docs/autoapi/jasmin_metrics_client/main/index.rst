@@ -17,12 +17,6 @@ Module Contents
 
 .. py:class:: MetricsClient(token: Optional[str] = None)
 
-   .. py:attribute:: hosts
-
-
-   .. py:attribute:: kwargs
-
-
    .. py:method:: get_all_metrics() -> Optional[List[str]]
 
       Retrieve all unique metric names from the Elasticsearch index.
