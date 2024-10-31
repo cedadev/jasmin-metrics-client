@@ -164,7 +164,7 @@ class TestMetricsClient(unittest.TestCase):
         metric_name = "power_total_inst"
         filters = {
             "labels": {"rack": "12"},
-            "time": {"start": "2024-10-28T05:03:14Z", "end": "2024-10-28T05:03:14Z"},
+            "time": {"start": "2024-10-28T05:03:14", "end": "2024-10-28T05:03:14"},
         }
 
         result = client.get_metric(metric_name, filters)
@@ -195,8 +195,8 @@ class TestMetricsClient(unittest.TestCase):
                             {
                                 "range": {
                                     "@timestamp": {
-                                        "gte": "2024-10-28T05:03:14Z",
-                                        "lte": "2024-10-28T05:03:14Z",
+                                        "gte": "2024-10-28T05:03:14",
+                                        "lte": "2024-10-28T05:03:14",
                                     }
                                 }
                             }

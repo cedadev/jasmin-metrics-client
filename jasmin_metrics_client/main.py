@@ -1,5 +1,5 @@
 import logging
-from datetime import datetime, timezone
+from datetime import datetime
 from typing import Any, Dict, List, Optional, Union
 
 import pandas as pd
@@ -183,8 +183,12 @@ class MetricsClient:
                         "Both 'start' and 'end' ISO-formatted dates must be provided in 'time' filter."
                     )
                 try:
-                    start_date = datetime.fromisoformat(time_range["start"])
-                    end_date = datetime.fromisoformat(time_range["end"])
+                    start_date = datetime.fromisoformat(
+                        time_range["start"].replace("Z", "")
+                    )
+                    end_date = datetime.fromisoformat(
+                        time_range["end"].replace("Z", "")
+                    )
                 except ValueError as e:
                     raise ValueError(
                         "Dates must be in ISO format (YYYY-MM-DDTHH:MM:SS) for 'start' and 'end'"
@@ -194,7 +198,7 @@ class MetricsClient:
                         "The 'start' date must be before the 'end' date or be the same."
                     )
 
-                if end_date > datetime.now(timezone.utc):
+                if end_date > datetime.now():
                     raise ValueError("The 'end' date cannot be in the future.")
 
                 query["query"]["bool"]["filter"].append(
