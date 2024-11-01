@@ -1,8 +1,10 @@
 import unittest
+from datetime import datetime, timedelta
 from typing import Any, List
 from unittest.mock import patch
 
 import pandas as pd
+from elasticsearch import ElasticsearchWarning
 
 from jasmin_metrics_client.main import MetricsClient
 
@@ -204,6 +206,95 @@ class TestMetricsClient(unittest.TestCase):
                     }
                 },
             },
+        )
+
+    # Tests for edge cases
+    @patch("jasmin_metrics_client.main.Elasticsearch")
+    @patch("jasmin_metrics_client.main.logging")
+    def test_initialization_without_token(
+        self, MockLogging: Any, MockElasticsearch: Any
+    ) -> None:
+        MetricsClient()
+        MockLogging.error.assert_called_once_with("No authentication token provided.")
+        MockElasticsearch.assert_called_once()
+
+    def test_build_query_invalid_dates(self) -> None:
+        with self.assertRaises(
+            ValueError, msg="Both 'start' and 'end' dates must be provided"
+        ):
+            MetricsClient._build_query(
+                "metric_name", {"time": {"start": "2024-10-28T05:03:14"}}
+            )
+
+        with self.assertRaises(ValueError, msg="Dates must be in ISO format"):
+            MetricsClient._build_query(
+                "metric_name",
+                {"time": {"start": "invalid-date", "end": "2024-10-28T05:03:14"}},
+            )
+
+        with self.assertRaises(
+            ValueError, msg="The 'start' date must be before the 'end' date"
+        ):
+            MetricsClient._build_query(
+                "metric_name",
+                {
+                    "time": {
+                        "start": "2024-10-28T05:03:15",
+                        "end": "2024-10-28T05:03:14",
+                    }
+                },
+            )
+
+        with self.assertRaises(
+            ValueError, msg="The 'end' date cannot be in the future"
+        ):
+            future_date = (datetime.now() + timedelta(days=1)).isoformat()
+            MetricsClient._build_query(
+                "metric_name",
+                {"time": {"start": "2024-10-28T05:03:14", "end": future_date}},
+            )
+
+    @patch("jasmin_metrics_client.main.Elasticsearch")
+    def test_get_all_metrics_no_results(self, MockElasticsearch: Any) -> None:
+        mock_search = MockElasticsearch.return_value.search
+        mock_search.return_value = {"aggregations": {"unique_metrics": {"buckets": []}}}
+        client = MetricsClient("token")
+        metrics = client.get_all_metrics()
+        self.assertEqual(metrics, [])
+
+    @patch("jasmin_metrics_client.main.Elasticsearch")
+    def test_get_metric_labels_no_labels(self, MockElasticsearch: Any) -> None:
+        mock_search = MockElasticsearch.return_value.search
+        mock_search.return_value = {"hits": {"hits": []}}
+
+        client = MetricsClient("token")
+        labels = client.get_metric_labels("non_existent_metric")
+        self.assertEqual(labels, [])
+
+    @patch("jasmin_metrics_client.main.Elasticsearch")
+    def test_get_metric_missing_keys(self, MockElasticsearch: Any) -> None:
+        mock_search = MockElasticsearch.return_value.search
+        mock_search.return_value = {
+            "hits": {"hits": [{"_source": {"prometheus": {"metrics": {}}}}]}
+        }
+
+        client = MetricsClient("token")
+        result = client.get_metric("power_total_inst")
+        self.assertTrue(None is result)
+
+    @patch("jasmin_metrics_client.main.Elasticsearch")
+    @patch("jasmin_metrics_client.main.logging")
+    def test_get_metric_labels_elasticsearch_warning(
+        self, MockLogging: Any, MockElasticsearch: Any
+    ) -> None:
+        mock_search = MockElasticsearch.return_value.search
+        mock_search.side_effect = ElasticsearchWarning("Warning message")
+
+        client = MetricsClient("token")
+        labels = client.get_metric_labels("power_total_inst")
+        self.assertIsNone(labels)
+        MockLogging.error.assert_called_once_with(
+            "Error fetching metric labels for power_total_inst: Warning message"
         )
 
     if __name__ == "__main__":

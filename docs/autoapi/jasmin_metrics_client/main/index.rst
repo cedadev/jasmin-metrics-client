@@ -38,7 +38,7 @@ Module Contents
 
 
 
-   .. py:method:: get_metric(metric_name: str, filters: Optional[Dict[str, Any]] = None, size: int = 10000) -> Optional[pandas.DataFrame]
+   .. py:method:: get_metric(metric_name: str, filters: Optional[dict[str, dict[str, str]]] = None, size: int = 10000) -> Optional[pandas.DataFrame]
 
       Retrieve metric data for a specific metric name, optionally filtered by labels and time range.
 
@@ -52,7 +52,7 @@ Module Contents
 
 
 
-   .. py:method:: _build_query(metric_name: str, filters: Optional[Dict[str, Any]] = None, size: int = 10000) -> Dict[str, Any]
+   .. py:method:: _build_query(metric_name: str, filters: Optional[dict[str, dict[str, str]]] = None, size: int = 10000) -> Dict[str, Any]
       :staticmethod:
 
 

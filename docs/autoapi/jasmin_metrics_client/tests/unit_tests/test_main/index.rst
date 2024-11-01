@@ -61,3 +61,21 @@ Module Contents
    .. py:method:: test_get_metric(MockElasticsearch: Any) -> None
 
 
+   .. py:method:: test_initialization_without_token(MockLogging: Any, MockElasticsearch: Any) -> None
+
+
+   .. py:method:: test_build_query_invalid_dates() -> None
+
+
+   .. py:method:: test_get_all_metrics_no_results(MockElasticsearch: Any) -> None
+
+
+   .. py:method:: test_get_metric_labels_no_labels(MockElasticsearch: Any) -> None
+
+
+   .. py:method:: test_get_metric_missing_keys(MockElasticsearch: Any) -> None
+
+
+   .. py:method:: test_get_metric_labels_elasticsearch_warning(MockLogging: Any, MockElasticsearch: Any) -> None
+
+

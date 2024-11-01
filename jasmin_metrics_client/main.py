@@ -115,7 +115,7 @@ class MetricsClient:
     def get_metric(
         self,
         metric_name: str,
-        filters: Optional[Dict[str, Any]] = None,
+        filters: Optional[dict[str, dict[str, str]]] = None,
         size: int = 10000,
     ) -> Optional[pd.DataFrame]:
         """
@@ -144,6 +144,11 @@ class MetricsClient:
             return None
         data: List[Dict[str, Union[str, float]]] = []
         for hit in response["hits"]["hits"]:
+            if "_source" not in hit or "@timestamp" not in hit["_source"]:
+                logging.error(
+                    "Unexpected response structure: missing '_source' or '@timestamp' in a hit"
+                )
+                return None
             timestamp = hit["_source"]["@timestamp"]
             value = hit["_source"]["prometheus"]["metrics"].get(metric_name)
             data.append({"timestamp": timestamp, "value": value})
@@ -151,7 +156,9 @@ class MetricsClient:
 
     @staticmethod
     def _build_query(
-        metric_name: str, filters: Optional[Dict[str, Any]] = None, size: int = 10000
+        metric_name: str,
+        filters: Optional[dict[str, dict[str, str]]] = None,
+        size: int = 10000,
     ) -> Dict[str, Any]:
         """Helper function to build Elasticsearch query."""
         query: Dict[str, Any] = {
