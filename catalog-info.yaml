@@ -6,6 +6,10 @@ metadata:
   annotations:
     github.com/project-slug: cedadev/jasmin-metrics-client
     backstage.io/source-template: template:default/ceda-github-python-library
+  links:
+  - url: https://gitlab.ceda.ac.uk/cedadev/jasmin-metrics-client
+    title: GitHub Repo
+    icon: github
 spec:
   type: library
   owner: user:default/StTysh
