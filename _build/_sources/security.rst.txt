@@ -1,1 +1,0 @@
-.. mdinclude:: ../SECURITY.md
