@@ -35,7 +35,7 @@ html_theme = "sphinx_rtd_theme"
 html_static_path = ["_static"]
 
 # Autoapi Configuration
-autoapi_dirs = ["../jasmin_metrics_client"]
+autoapi_dirs = ["../jasmin_metrics_client", "../tests"]
 autoapi_keep_files = True
 master_doc = "index"
 autoapi_options = [

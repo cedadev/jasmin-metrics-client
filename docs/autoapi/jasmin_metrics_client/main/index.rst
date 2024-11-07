@@ -15,14 +15,14 @@ Classes
 Module Contents
 ---------------
 
-.. py:class:: MetricsClient(token: Optional[str] = None)
+.. py:class:: MetricsClient(token: Optional[str])
 
    .. py:method:: get_all_metrics() -> Optional[List[str]]
 
       Retrieve all unique metric names from the Elasticsearch index.
 
       Returns:
-          Optional[List[str]]: A list of unique metric names, or None if an error occurs.
+          Optional[List[str]]: A list of unique metric names, or empty list if no results.
 
 
 
@@ -52,7 +52,7 @@ Module Contents
 
 
 
-   .. py:method:: _build_query(metric_name: str, filters: Optional[dict[str, dict[str, str]]] = None, size: int = 10000) -> Dict[str, Any]
+   .. py:method:: _build_query(s: elasticsearch_dsl.Search, metric_name: str, filters: Optional[dict[str, dict[str, str]]] = None) -> elasticsearch_dsl.Search
       :staticmethod:
 
 
