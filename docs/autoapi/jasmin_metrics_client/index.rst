@@ -31,7 +31,7 @@ Classes
 Package Contents
 ----------------
 
-.. py:class:: MetricsClient(token: Optional[str])
+.. py:class:: MetricsClient(token: str)
 
    .. py:method:: get_all_metrics() -> Optional[List[str]]
 

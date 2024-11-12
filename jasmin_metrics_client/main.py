@@ -1,6 +1,6 @@
 import logging
 from datetime import datetime
-from typing import Dict, List, Optional
+from typing import Dict, List, Mapping, Optional
 
 import pandas as pd
 from elastic_transport import ApiError
@@ -10,20 +10,24 @@ from elasticsearch_dsl.response import Hit
 
 
 class MetricsClient:
-    def __init__(self, token: Optional[str]) -> None:
+    def __init__(self, token: str) -> None:
         """
         Initialize the MetricsClient with an optional token for authentication.
 
         Args:
             token (Optional[str]): The authentication token.
         """
-        hosts = [f"http://es{i}.ceda.ac.uk:9200" for i in range(1, 9)]
-        headers = {"Authorization": f"Bearer {token}"}
+        hosts = ["https://elasticsearch.ceda.ac.uk"]
+        headers: Mapping[str, str] = {"x-api-key": token}
+        headers = {key: value for key, value in headers.items() if value is not None}
 
         try:
             self.es = Elasticsearch(
                 hosts=hosts,
                 headers=headers,
+                timeout=30,
+                max_retries=5,
+                retry_on_timeout=True,
             )
             self.search = Search(using=self.es)
             logging.info("Elasticsearch client initialized successfully.")
