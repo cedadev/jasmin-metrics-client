@@ -30,7 +30,7 @@ class MetricsClient:
                 retry_on_timeout=True,
             )
             self.search = Search(using=self.es)
-            logging.info("Elasticsearch client initialized successfully.")
+            logging.debug("Elasticsearch client initialized successfully.")
         except ApiError as e:
             raise ApiError(
                 message=f"Unexpected error initializing Elasticsearch client: {str(e)}",
@@ -47,14 +47,14 @@ class MetricsClient:
         """
         response: Response[Hit]
         try:
-            s = self.search.index("jasmin-metrics-production")
-            s.aggs.bucket(
+            search = self.search.index("jasmin-metrics-production")
+            search.aggs.bucket(
                 "unique_metrics",
                 "terms",
                 field="prometheus.labels.metric_name.keyword",
                 size=1000,
             )
-            response = s.execute()
+            response = search.execute()
         except ApiError as e:
             raise ApiError(
                 message=f"Unexpected error fetching all metrics: {str(e)}",
@@ -62,7 +62,7 @@ class MetricsClient:
                 body=e.body,
             )
         if not response.aggregations.unique_metrics.buckets:
-            logging.info("No matrics found")
+            logging.debug("No matrics found")
             return []
 
         res = [buckets.key for buckets in response.aggregations.unique_metrics.buckets]
@@ -81,11 +81,11 @@ class MetricsClient:
         response: Response[Hit]
 
         try:
-            s = self.search.index("jasmin-metrics-production")
-            s = s.filter(
+            search = self.search.index("jasmin-metrics-production")
+            search = search.filter(
                 "match", **{"prometheus.labels.metric_name.keyword": metric_name}
             )
-            response = s[0:1].execute()
+            response = search[0:1].execute()
         except ApiError as e:
             raise ApiError(
                 message=f"Unexpected error fetching metric {metric_name}: {str(e)}",
@@ -93,7 +93,7 @@ class MetricsClient:
                 body=e.body,
             )
         if not response.hits:
-            logging.info(f"No labels found for metric: {metric_name}")
+            logging.debug(f"No labels found for metric: {metric_name}")
             return []
         labels = set()
         for hit in response:
@@ -120,10 +120,10 @@ class MetricsClient:
 
         response: Response[Hit]
         try:
-            s = self.search.index("jasmin-metrics-production")
-            s = self._build_query(s, metric_name, filters)
-            s = s[:size]
-            response = s.execute()
+            search = self.search.index("jasmin-metrics-production")
+            search = self._build_query(search, metric_name, filters)
+            search = search[:size]
+            response = search.execute()
         except ApiError as e:
             raise ApiError(
                 message=f"Unexpected error fetching metric {metric_name}: {str(e)}",
@@ -131,7 +131,7 @@ class MetricsClient:
                 body=e.body,
             )
         if not response.hits:
-            logging.info(f"No data found for metric: {metric_name}")
+            logging.debug(f"No data found for metric: {metric_name}")
             return pd.DataFrame()
 
         data: List[Dict[str, float]] = []
@@ -150,14 +150,20 @@ class MetricsClient:
 
     @staticmethod
     def _build_query(
-        s: Search, metric_name: str, filters: Optional[dict[str, dict[str, str]]] = None
+        search: Search,
+        metric_name: str,
+        filters: Optional[dict[str, dict[str, str]]] = None,
     ) -> Search:
         """Helper function to build Elasticsearch query."""
-        s = s.filter("term", **{"prometheus.labels.metric_name.keyword": metric_name})
+        search = search.filter(
+            "term", **{"prometheus.labels.metric_name.keyword": metric_name}
+        )
         if filters:
             if "labels" in filters:
                 for key, value in filters["labels"].items():
-                    s = s.query("term", **{f"prometheus.labels.{key}.keyword": value})
+                    search = search.query(
+                        "term", **{f"prometheus.labels.{key}.keyword": value}
+                    )
 
             if "time" in filters:
                 time_range = filters["time"]
@@ -180,7 +186,7 @@ class MetricsClient:
                 if end_date > datetime.now():
                     raise ValueError("The 'end' date cannot be in the future")
 
-                s = s.filter(
+                search = search.filter(
                     "range",
                     **{
                         "@timestamp": {
@@ -190,4 +196,4 @@ class MetricsClient:
                     },
                 )
 
-        return s
+        return search

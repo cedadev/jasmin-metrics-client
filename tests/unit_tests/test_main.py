@@ -1,7 +1,7 @@
 import unittest
 from datetime import datetime, timedelta
-from typing import Any, List
-from unittest.mock import patch
+from typing import List
+from unittest.mock import Mock, patch
 
 import pandas as pd
 from elastic_transport import ObjectApiResponse
@@ -14,9 +14,9 @@ class TestMetricsClient(unittest.TestCase):
     """Test class for metrics client"""
 
     @patch("jasmin_metrics_client.main.Elasticsearch")
-    def test_get_all_metrics(self, MockElasticsearch: Any) -> None:
+    def test_get_all_metrics(self, MockElasticsearch: Mock) -> None:
         """
-        Test :meth:`~jasmin_metrics_client.main.MetricsClient.get_all_metrics` to retrieve unique metric names.
+        Test py:meth:`~jasmin_metrics_client.main.MetricsClient.get_all_metrics` to retrieve unique metric names.
 
         Mocks the Elasticsearch `search` method to return a simulated response with
         a list of metric names. Verifies that:
@@ -73,9 +73,9 @@ class TestMetricsClient(unittest.TestCase):
         )
 
     @patch("jasmin_metrics_client.main.Elasticsearch")
-    def test_get_metric_labels(self, MockElasticsearch: Any) -> None:
+    def test_get_metric_labels(self, MockElasticsearch: Mock) -> None:
         """
-        Test :meth:`~jasmin_metrics_client.main.MetricsClient.get_metric_labels` to retrieve labels for a specified metric.
+        Test py:meth:`~jasmin_metrics_client.main.MetricsClient.get_metric_labels` to retrieve labels for a specified metric.
 
         Mocks the Elasticsearch `search` method to return a response containing
         a metric with associated labels. Verifies that:
@@ -151,9 +151,9 @@ class TestMetricsClient(unittest.TestCase):
         )
 
     @patch("jasmin_metrics_client.main.Elasticsearch")
-    def test_get_metric(self, MockElasticsearch: Any) -> None:
+    def test_get_metric(self, MockElasticsearch: Mock) -> None:
         """
-        Test :meth:`~jasmin_metrics_client.main.MetricsClient.get_metric` to retrieve metric values within a time range and filter.
+        Test py:meth:`~jasmin_metrics_client.main.MetricsClient.get_metric` to retrieve metric values within a time range and filter.
 
         Mocks Elasticsearch `search` to return several metric instances for a
         specified metric name and filters. Verifies that:
@@ -261,11 +261,11 @@ class TestMetricsClient(unittest.TestCase):
     # Tests for edge cases
     def test_build_query_invalid_dates(self) -> None:
         """
-        Test :meth:`~jasmin_metrics_client.main.MetricsClient._build_query` method for handling invalid date conditions.
+        Test py:meth:`~jasmin_metrics_client.main.MetricsClient._build_query` method for handling invalid date conditions.
 
         Tests different scenarios with improperly formatted or invalid dates,
         including:
-        - Missing end date.
+        - Missing end date .
         - Invalid date format.
         - Start date after the end date.
         - End date in the future.
@@ -341,9 +341,9 @@ class TestMetricsClient(unittest.TestCase):
             )
 
     @patch("jasmin_metrics_client.main.Elasticsearch")
-    def test_get_all_metrics_no_results(self, MockElasticsearch: Any) -> None:
+    def test_get_all_metrics_no_results(self, MockElasticsearch: Mock) -> None:
         """
-        Test :meth:`~jasmin_metrics_client.main.MetricsClient.get_all_metrics` handling of no results case.
+        Test py:meth:`~jasmin_metrics_client.main.MetricsClient.get_all_metrics` handling of no results case.
 
         Mocks Elasticsearch `search` to return an empty aggregation bucket, simulating
         no metrics found. Verifies that:
@@ -366,9 +366,9 @@ class TestMetricsClient(unittest.TestCase):
         self.assertEqual(metrics, [])
 
     @patch("jasmin_metrics_client.main.Elasticsearch")
-    def test_get_metric_labels_no_labels(self, MockElasticsearch: Any) -> None:
+    def test_get_metric_labels_no_labels(self, MockElasticsearch: Mock) -> None:
         """
-        Test :meth:`~jasmin_metrics_client.main.MetricsClient.get_metric_labels` behavior when no labels are available for a metric.
+        Test py:meth:`~jasmin_metrics_client.main.MetricsClient.get_metric_labels` behavior when no labels are available for a metric.
 
         Mocks Elasticsearch `search` to return an empty list for a non-existent metric,
         simulating no labels. Verifies that:
@@ -384,9 +384,9 @@ class TestMetricsClient(unittest.TestCase):
         self.assertEqual(labels, [])
 
     @patch("jasmin_metrics_client.main.Elasticsearch")
-    def test_get_metric_missing_keys(self, MockElasticsearch: Any) -> None:
+    def test_get_metric_missing_keys(self, MockElasticsearch: Mock) -> None:
         """
-        Test :meth:`~jasmin_metrics_client.main.MetricsClient.get_metric` when expected metric data is missing from the response.
+        Test py:meth:`~jasmin_metrics_client.main.MetricsClient.get_metric` when expected metric data is missing from the response.
 
         Mocks Elasticsearch `search` to return a response with missing metric keys.
         Verifies that:
