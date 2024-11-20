@@ -1,52 +1,113 @@
 # Jasmin Metrics Client
 
-A library to do requests to elastic search metric data
+The Jasmin Metrics Client is a Python library designed to interact with the Elasticsearch  of the JASMIN metrics system. It provides methods to retrieve unique metric names, metric labels, and metric data within specified time ranges and filters. To be able to use this library you are supposed to have a token to be able to connect to Elasticsearch.
 
-## Getting started
+## Table of Contents
+- [Features](#features)
+- [Installation](#installation)
+- [Usage](#usage)
+  - [Initialize the Client](#initialize-the-client)
+  - [Retrieve All Metrics](#retrieve-all-metrics)
+  - [Retrieve Metric Labels](#retrieve-metric-labels)
+  - [Retrieve Metric Data](#retrieve-metric-data)
+- [Error Handling](#error-handling)
+- [Contributing](#contributing)
+- [License](#license)
 
-This Python library was created by CEDA's Backstage service, to begin working on your code you complete 
-the steps noted in this document. If you find any issues, please note them in this repo:
+## Features
+- Retrieve all unique metric names.
+- Retrieve labels associated with a specific metric.
+- Retrieve metric data for a specific metric name, optionally filtered  by labels and time range.
 
-https://github.com/cedadev/ceda-github-python-library
+## Methods
 
-### Install Poetry
+### `get_all_metrics(size: int = 1000)`
+Retrieves all unique metric names from the Elasticsearch index.
 
-This library will use the Poetry packaging system. To install Poetry you should follow these 
-instructions: https://python-poetry.org/docs/#installation
+### `get_metric_labels(metric_name: str)`
+Retrieves all labels associated with a specific metric name.
 
-### Install all Development Libraries
+### `get_metric(metric_name: str, filters: Optional[dict[str, dict[str, str]]] = None, size: int = 10000)`
+Retrieves metric data for a specific metric name, optionally filtered by labels and time range.
 
-Run `poetry install` to collect all relevant development libraries and create your `poetry.lock` file. 
-Alternatively you can run `poetry lock` which will a `poetry.lock`.
+## Installation
 
-In both cases this lock file should be commited.
+### Prerequisites
 
-### Install the pre-commit hooks
+- Python 3.7 or higher
 
-Run `poetry run pre-commit install` to install the pre-commit hooks into this repository.
+### Poetry
 
-### Activate GitHub workflows
+This project uses [Poetry](https://python-poetry.org/) for dependency management and packaging. Follow the steps below to install Poetry and set up the project.
 
-You should change the name of the directory `.rename_github` to `.github` (note the full stops). 
-This will activate all GitHub quality assurance, documentation and module publication workflows. 
+1. **Install Poetry**:
 
-At this point you can commit all your changes to ensure a fully working and quality assured repository.
+   Follow the [official installation guide](https://python-poetry.org/docs/#installation) for more options.
 
-### Activate Code Scanning on GitHub
+2. **Clone the repository**:
 
-You should activate `Default` "CodeQL analysis" on GitHub at the following link:
+    ```sh
+    git clone https://github.com/your-username/jasmin-metrics-client.git
+    cd jasmin-metrics-client
+    ```
 
-https://github.com/cedadev/jasmin-metrics-client/settings/security_analysis
+3. **Install dependencies**:
 
-### Create a PyPI project
+    ```sh
+    poetry install
+    ```
 
-Create a project on PyPI for jasmin-metrics-client, you should also set up an integration with GitHub 
-if you have not done so already.
+## Usage
 
-## Other Configurations
+Below are examples of how to use the Jasmin Metrics Client.
 
-### Check your GitHub email settings (Optional)
+### Initialize the Client
 
-If your GitHub account does not make one of your email addresses visible, then commits to this
-(and future) libraries made with Backstage templates will not be linked to your GitHub account. 
-Backstage will automatically collect this information periodically.
+   ```python
+   from jasmin_metrics_client import MetricsClient
+
+   client = MetricsClient("your-api-token")
+   ```
+
+### Retrieve All Metrics
+   ```python
+   metrics = client.get_all_metrics()
+   print(metrics)
+   ```
+
+### Retrieve Metric Labels
+
+   ```python
+   labels = client.get_metric_labels("power_total_inst")
+   print(labels)
+   ```
+### Retrieve Metric Data
+
+   ```python
+   filters = {
+    "labels": {"rack": "12"},
+    "time": {"start": "2024-10-28T05:03:14", "end": "2024-10-28T05:03:14"},
+   }
+   data = client.get_metric("power_total_inst", filters)
+   print(data)
+   ```
+
+### Error Handling
+
+   It's important to handle potential errors when using the client. Here's an example:
+
+   ```python
+   try:
+       metrics = client.get_all_metrics()
+       print(metrics)
+   except Exception as e:
+       print(f"An error occurred: {e}")
+   ```
+
+### Contributing
+
+   Contributions are welcome! Please open an issue or submit a pull request for any improvements or bug fixes.
+
+### License
+
+   This project is licensed under the MIT License. See the LICENSE file for details.

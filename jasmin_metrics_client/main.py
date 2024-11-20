@@ -38,7 +38,7 @@ class MetricsClient:
                 body=e.body,
             )
 
-    def get_all_metrics(self) -> Optional[List[str]]:
+    def get_all_metrics(self, size: int = 1000) -> List[str]:
         """
         Retrieve all unique metric names from the Elasticsearch index.
 
@@ -52,7 +52,7 @@ class MetricsClient:
                 "unique_metrics",
                 "terms",
                 field="prometheus.labels.metric_name.keyword",
-                size=1000,
+                size=size,
             )
             response = search.execute()
         except ApiError as e:
@@ -68,7 +68,7 @@ class MetricsClient:
         res = [buckets.key for buckets in response.aggregations.unique_metrics.buckets]
         return res
 
-    def get_metric_labels(self, metric_name: str) -> Optional[List[str]]:
+    def get_metric_labels(self, metric_name: str) -> List[str]:
         """
         Retrieve all labels associated with a specific metric name.
 
@@ -105,7 +105,7 @@ class MetricsClient:
         metric_name: str,
         filters: Optional[dict[str, dict[str, str]]] = None,
         size: int = 10000,
-    ) -> Optional[pd.DataFrame]:
+    ) -> pd.DataFrame:
         """
         Retrieve metric data for a specific metric name, optionally filtered by labels and time range.
 
