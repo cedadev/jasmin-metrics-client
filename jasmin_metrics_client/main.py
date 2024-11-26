@@ -1,6 +1,6 @@
 import logging
+from collections.abc import Mapping
 from datetime import datetime
-from typing import Dict, List, Mapping, Optional
 
 import pandas as pd
 from elastic_transport import ApiError
@@ -11,11 +11,12 @@ from elasticsearch_dsl.response import Hit
 
 class MetricsClient:
     def __init__(self, token: str) -> None:
-        """
-        Initialize the MetricsClient with an optional token for authentication.
+        """Initialize the MetricsClient with an optional token for authentication.
 
         Args:
+        ----
             token (Optional[str]): The authentication token.
+
         """
         hosts = ["https://elasticsearch.ceda.ac.uk"]
         headers: Mapping[str, str] = {"x-api-key": token}
@@ -33,17 +34,18 @@ class MetricsClient:
             logging.debug("Elasticsearch client initialized successfully.")
         except ApiError as e:
             raise ApiError(
-                message=f"Unexpected error initializing Elasticsearch client: {str(e)}",
+                message=f"Unexpected error initializing Elasticsearch client: {e!s}",
                 meta=e.meta,
                 body=e.body,
             )
 
-    def get_all_metrics(self, size: int = 1000) -> List[str]:
-        """
-        Retrieve all unique metric names from the Elasticsearch index.
+    def get_all_metrics(self, size: int = 1000) -> list[str]:
+        """Retrieve all unique metric names from the Elasticsearch index.
 
-        Returns:
+        Returns
+        -------
             Optional[List[str]]: A list of unique metric names, or empty list if no results.
+
         """
         response: Response[Hit]
         try:
@@ -57,7 +59,7 @@ class MetricsClient:
             response = search.execute()
         except ApiError as e:
             raise ApiError(
-                message=f"Unexpected error fetching all metrics: {str(e)}",
+                message=f"Unexpected error fetching all metrics: {e!s}",
                 meta=e.meta,
                 body=e.body,
             )
@@ -68,27 +70,30 @@ class MetricsClient:
         res = [buckets.key for buckets in response.aggregations.unique_metrics.buckets]
         return res
 
-    def get_metric_labels(self, metric_name: str) -> List[str]:
-        """
-        Retrieve all labels associated with a specific metric name.
+    def get_metric_labels(self, metric_name: str) -> list[str]:
+        """Retrieve all labels associated with a specific metric name.
 
         Args:
+        ----
             metric_name (str): The name of the metric.
 
         Returns:
+        -------
             Optional[List[str]]: A list of labels for the metric, or None if an error occurs.
+
         """
         response: Response[Hit]
 
         try:
             search = self.search.index("jasmin-metrics-production")
             search = search.filter(
-                "match", **{"prometheus.labels.metric_name.keyword": metric_name}
+                "match",
+                **{"prometheus.labels.metric_name.keyword": metric_name},
             )
             response = search[0:1].execute()
         except ApiError as e:
             raise ApiError(
-                message=f"Unexpected error fetching metric {metric_name}: {str(e)}",
+                message=f"Unexpected error fetching metric {metric_name}: {e!s}",
                 meta=e.meta,
                 body=e.body,
             )
@@ -103,30 +108,32 @@ class MetricsClient:
     def get_metric(
         self,
         metric_name: str,
-        filters: Optional[dict[str, dict[str, str]]] = None,
+        filters: dict[str, dict[str, str]] | None = None,
         size: int = 10000,
     ) -> pd.DataFrame:
-        """
-        Retrieve metric data for a specific metric name, optionally filtered by labels and time range.
+        """Retrieve metric data for a specific metric name, optionally filtered by labels and time range.
 
         Args:
+        ----
             metric_name (str): The name of the metric.
             filters (Optional[Dict[str, Any]]): Optional filters for labels and time range. Defaults to None.
             size (int): The number of results to retrieve. Defaults to 10000.
 
         Returns:
+        -------
             Optional[pd.DataFrame]: A DataFrame containing the metric data, or None if an error occurs.
-        """
 
+        """
         response: Response[Hit]
         try:
             search = self.search.index("jasmin-metrics-production")
+            # noinspection PyTypeChecker
             search = self._build_query(search, metric_name, filters)
             search = search[:size]
             response = search.execute()
         except ApiError as e:
             raise ApiError(
-                message=f"Unexpected error fetching metric {metric_name}: {str(e)}",
+                message=f"Unexpected error fetching metric {metric_name}: {e!s}",
                 meta=e.meta,
                 body=e.body,
             )
@@ -134,11 +141,11 @@ class MetricsClient:
             logging.debug(f"No data found for metric: {metric_name}")
             return pd.DataFrame()
 
-        data: List[Dict[str, float]] = []
+        data: list[dict[str, float]] = []
         for hit in response.hits:
             if "@timestamp" not in hit or "prometheus" not in hit:
                 logging.error(
-                    "Unexpected response structure: missing '@timestamp' or metric data"
+                    "Unexpected response structure: missing '@timestamp' or metric data",
                 )
                 return pd.DataFrame()
 
@@ -152,35 +159,37 @@ class MetricsClient:
     def _build_query(
         search: Search,
         metric_name: str,
-        filters: Optional[dict[str, dict[str, str]]] = None,
+        filters: dict[str, dict[str, str]] | None = None,
     ) -> Search:
         """Helper function to build Elasticsearch query."""
         search = search.filter(
-            "term", **{"prometheus.labels.metric_name.keyword": metric_name}
+            "term",
+            **{"prometheus.labels.metric_name.keyword": metric_name},
         )
         if filters:
             if "labels" in filters:
                 for key, value in filters["labels"].items():
                     search = search.query(
-                        "term", **{f"prometheus.labels.{key}.keyword": value}
+                        "term",
+                        **{f"prometheus.labels.{key}.keyword": value},
                     )
 
             if "time" in filters:
                 time_range = filters["time"]
                 if "start" not in time_range or "end" not in time_range:
                     raise ValueError(
-                        "Both 'start' and 'end' ISO-formatted dates must be provided in 'time' filter"
+                        "Both 'start' and 'end' ISO-formatted dates must be provided in 'time' filter",
                     )
                 try:
                     start_date = datetime.fromisoformat(time_range["start"])
                     end_date = datetime.fromisoformat(time_range["end"])
                 except ValueError as e:
                     raise ValueError(
-                        "Dates must be in ISO format (YYYY-MM-DDTHH:MM:SS) for 'start' and 'end'"
+                        "Dates must be in ISO format (YYYY-MM-DDTHH:MM:SS) for 'start' and 'end'",
                     ) from e
                 if start_date > end_date:
                     raise ValueError(
-                        "The 'start' date must be before the 'end' date or be the same"
+                        "The 'start' date must be before the 'end' date or be the same",
                     )
 
                 if end_date > datetime.now():
@@ -192,7 +201,7 @@ class MetricsClient:
                         "@timestamp": {
                             "gte": time_range["start"],
                             "lte": time_range["end"],
-                        }
+                        },
                     },
                 )
 
