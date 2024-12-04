@@ -20,12 +20,13 @@ if TYPE_CHECKING:
 class MetricsClient:
     """A client for fetching metrics data from Elasticsearch."""
 
-    def __init__(self, token: str) -> None:
+    def __init__(self, token: str, timeout: int = 30) -> None:
         """Initialize the MetricsClient with an optional token for authentication.
 
         Args:
         ----
             token (Optional[str]): The authentication token.
+            timeout (int): The request timeout in seconds. Defaults to 30.
 
         """
         hosts = ["https://elasticsearch.ceda.ac.uk"]
@@ -36,7 +37,7 @@ class MetricsClient:
             self.es = Elasticsearch(
                 hosts=hosts,
                 headers=headers,
-                timeout=30,
+                request_timeout=timeout,
                 max_retries=5,
                 retry_on_timeout=True,
             )
