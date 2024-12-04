@@ -1,15 +1,25 @@
+"""Main module for the Jasmin Metrics Client."""
+
 import logging
-from collections.abc import Mapping
-from datetime import datetime
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from collections.abc import Mapping
+
+from datetime import datetime, timezone
 
 import pandas as pd
 from elastic_transport import ApiError
 from elasticsearch import Elasticsearch
 from elasticsearch_dsl import Response, Search
-from elasticsearch_dsl.response import Hit
+
+if TYPE_CHECKING:
+    from elasticsearch_dsl.response import Hit
 
 
 class MetricsClient:
+    """A client for fetching metrics data from Elasticsearch."""
+
     def __init__(self, token: str) -> None:
         """Initialize the MetricsClient with an optional token for authentication.
 
@@ -31,13 +41,14 @@ class MetricsClient:
                 retry_on_timeout=True,
             )
             self.search = Search(using=self.es)
-            logging.debug("Elasticsearch client initialized successfully.")
-        except ApiError as e:
+            error_message = "Elasticsearch client initialized successfully."
+            logging.debug(error_message)
+        except ApiError as err:
             raise ApiError(
-                message=f"Unexpected error initializing Elasticsearch client: {e!s}",
-                meta=e.meta,
-                body=e.body,
-            )
+                message=f"Unexpected error initializing Elasticsearch client: {err!s}",
+                meta=err.meta,
+                body=err.body,
+            ) from err
 
     def get_all_metrics(self, size: int = 1000) -> list[str]:
         """Retrieve all unique metric names from the Elasticsearch index.
@@ -57,18 +68,18 @@ class MetricsClient:
                 size=size,
             )
             response = search.execute()
-        except ApiError as e:
+        except ApiError as err:
             raise ApiError(
-                message=f"Unexpected error fetching all metrics: {e!s}",
-                meta=e.meta,
-                body=e.body,
-            )
+                message=f"Unexpected error fetching all metrics: {err!s}",
+                meta=err.meta,
+                body=err.body,
+            ) from err
         if not response.aggregations.unique_metrics.buckets:
-            logging.debug("No matrics found")
+            error_message = "No metrics found"
+            logging.debug(error_message)
             return []
 
-        res = [buckets.key for buckets in response.aggregations.unique_metrics.buckets]
-        return res
+        return [buckets.key for buckets in response.aggregations.unique_metrics.buckets]
 
     def get_metric_labels(self, metric_name: str) -> list[str]:
         """Retrieve all labels associated with a specific metric name.
@@ -91,14 +102,15 @@ class MetricsClient:
                 **{"prometheus.labels.metric_name.keyword": metric_name},
             )
             response = search[0:1].execute()
-        except ApiError as e:
+        except ApiError as err:
             raise ApiError(
-                message=f"Unexpected error fetching metric {metric_name}: {e!s}",
-                meta=e.meta,
-                body=e.body,
-            )
+                message=f"Unexpected error fetching metric {metric_name}: {err!s}",
+                meta=err.meta,
+                body=err.body,
+            ) from err
         if not response.hits:
-            logging.debug(f"No labels found for metric: {metric_name}")
+            error_message = f"No data found for metric: {metric_name}"
+            logging.debug(error_message)
             return []
         labels = set()
         for hit in response:
@@ -131,22 +143,24 @@ class MetricsClient:
             search = self._build_query(search, metric_name, filters)
             search = search[:size]
             response = search.execute()
-        except ApiError as e:
+        except ApiError as err:
             raise ApiError(
-                message=f"Unexpected error fetching metric {metric_name}: {e!s}",
-                meta=e.meta,
-                body=e.body,
-            )
+                message=f"Unexpected error fetching metric {metric_name}: {err!s}",
+                meta=err.meta,
+                body=err.body,
+            ) from err
         if not response.hits:
-            logging.debug(f"No data found for metric: {metric_name}")
+            error_message = f"No data found for metric: {metric_name}"
+            logging.debug(error_message)
             return pd.DataFrame()
 
         data: list[dict[str, float]] = []
         for hit in response.hits:
             if "@timestamp" not in hit or "prometheus" not in hit:
-                logging.error(
-                    "Unexpected response structure: missing '@timestamp' or metric data",
+                error_message = (
+                    "Unexpected response structure: missing '@timestamp' or metric data"
                 )
+                logging.debug(error_message)
                 return pd.DataFrame()
 
             timestamp = hit["@timestamp"]
@@ -161,7 +175,7 @@ class MetricsClient:
         metric_name: str,
         filters: dict[str, dict[str, str]] | None = None,
     ) -> Search:
-        """Helper function to build Elasticsearch query."""
+        """Build an Elasticsearch query."""
         search = search.filter(
             "term",
             **{"prometheus.labels.metric_name.keyword": metric_name},
@@ -177,23 +191,23 @@ class MetricsClient:
             if "time" in filters:
                 time_range = filters["time"]
                 if "start" not in time_range or "end" not in time_range:
-                    raise ValueError(
-                        "Both 'start' and 'end' ISO-formatted dates must be provided in 'time' filter",
-                    )
+                    error_message = "Both 'start' and 'end' ISO-formatted dates must be provided in 'time' filter"
+                    raise ValueError(error_message)
                 try:
                     start_date = datetime.fromisoformat(time_range["start"])
                     end_date = datetime.fromisoformat(time_range["end"])
-                except ValueError as e:
-                    raise ValueError(
-                        "Dates must be in ISO format (YYYY-MM-DDTHH:MM:SS) for 'start' and 'end'",
-                    ) from e
+                except ValueError as err:
+                    error_message = "Dates must be in ISO format (YYYY-MM-DDTHH:MM:SS) for 'start' and 'end'"
+                    raise ValueError(error_message) from err
                 if start_date > end_date:
-                    raise ValueError(
-                        "The 'start' date must be before the 'end' date or be the same",
+                    error_message = (
+                        "The 'start' date must be before the 'end' date or be the same"
                     )
+                    raise ValueError(error_message)
 
-                if end_date > datetime.now():
-                    raise ValueError("The 'end' date cannot be in the future")
+                if end_date > datetime.now(timezone.utc).replace(tzinfo=None):
+                    error_message = "The 'end' date cannot be in the future"
+                    raise ValueError(error_message)
 
                 search = search.filter(
                     "range",

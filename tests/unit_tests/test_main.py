@@ -1,19 +1,20 @@
+"""Test class for metrics client."""
+
 import unittest
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from unittest.mock import Mock, patch
 
 import pandas as pd
 from elastic_transport import ObjectApiResponse
-from elasticsearch_dsl import Search
 
 from jasmin_metrics_client import MetricsClient
 
 
 class TestMetricsClient(unittest.TestCase):
-    """Test class for metrics client"""
+    """Test class for metrics client."""
 
     @patch("jasmin_metrics_client.main.Elasticsearch")
-    def test_get_all_metrics(self, mock_elasticsearch: Mock) -> None:
+    def test_get_all_metrics(self, mockelasticsearch: Mock) -> None:
         """Test py:meth:`~jasmin_metrics_client.main.MetricsClient.get_all_metrics` to retrieve unique metric names.
 
         Mocks the Elasticsearch `search` method to return a simulated response with
@@ -22,7 +23,7 @@ class TestMetricsClient(unittest.TestCase):
         - Specific metric names are included in the response.
         - The search query was called with expected parameters.
         """
-        mock_search = mock_elasticsearch.return_value.search
+        mock_search = mockelasticsearch.return_value.search
         mock_search.return_value = ObjectApiResponse(
             meta=None,
             body={
@@ -71,7 +72,7 @@ class TestMetricsClient(unittest.TestCase):
         )
 
     @patch("jasmin_metrics_client.main.Elasticsearch")
-    def test_get_metric_labels(self, mock_elasticsearch: Mock) -> None:
+    def test_get_metric_labels(self, mockelasticsearch: Mock) -> None:
         """Test py:meth:`~jasmin_metrics_client.main.MetricsClient.get_metric_labels` to retrieve labels for a specified metric.
 
         Mocks the Elasticsearch `search` method to return a response containing
@@ -80,7 +81,7 @@ class TestMetricsClient(unittest.TestCase):
         - The response format is a non-empty list.
         - The search query was called with the correct query structure.
         """
-        mock_search = mock_elasticsearch.return_value.search
+        mock_search = mockelasticsearch.return_value.search
         mock_search.return_value = ObjectApiResponse(
             meta=None,
             body={
@@ -148,7 +149,7 @@ class TestMetricsClient(unittest.TestCase):
         )
 
     @patch("jasmin_metrics_client.main.Elasticsearch")
-    def test_get_metric(self, mock_elasticsearch: Mock) -> None:
+    def test_get_metric(self, mockelasticsearch: Mock) -> None:
         """Test py:meth:`~jasmin_metrics_client.main.MetricsClient.get_metric` to retrieve metric values within a time range and filter.
 
         Mocks Elasticsearch `search` to return several metric instances for a
@@ -157,7 +158,7 @@ class TestMetricsClient(unittest.TestCase):
         - The DataFrame contents match the mock response data.
         - The search query was called with expected parameters for date filtering.
         """
-        mock_search = mock_elasticsearch.return_value.search
+        mock_search = mockelasticsearch.return_value.search
         mock_search.return_value = ObjectApiResponse(
             meta=None,
             body={
@@ -264,47 +265,42 @@ class TestMetricsClient(unittest.TestCase):
         - Invalid date format.
         - Start date after the end date.
         - End date in the future.
-
-        Verifies that each invalid condition raises an appropriate error with a
-        descriptive message.
+        Verifies that each invalid condition raises an appropriate error with a descriptive message.
         """
-        s = Search()
+        client = MetricsClient("token")
         # Test case 1: Missing 'end' date
         try:
-            MetricsClient._build_query(
-                s,
+            client.get_metric(
                 "power_total_inst",
                 {
                     "time": {"start": "2024-10-28T05:03:14"},
                 },
             )
-        except Exception as e:
+        except ValueError as err:
             self.assertTrue(
-                str(e).__contains__(
+                str(err).__contains__(
                     "Both 'start' and 'end' ISO-formatted dates must be provided in 'time' filter",
                 ),
             )
 
         # Test case 2: Invalid date format
         try:
-            MetricsClient._build_query(
-                s,
+            client.get_metric(
                 "power_total_inst",
                 {
                     "time": {"start": "invalid-date", "end": "2024-10-28T05:03:14"},
                 },
             )
-        except Exception as e:
+        except ValueError as err:
             self.assertTrue(
-                str(e).__contains__(
+                str(err).__contains__(
                     "Dates must be in ISO format (YYYY-MM-DDTHH:MM:SS) for 'start' and 'end'",
                 ),
             )
 
         # Test case 3: Start date is after end date
         try:
-            MetricsClient._build_query(
-                s,
+            client.get_metric(
                 "power_total_inst",
                 {
                     "time": {
@@ -313,37 +309,38 @@ class TestMetricsClient(unittest.TestCase):
                     },
                 },
             )
-        except Exception as e:
+        except ValueError as err:
             self.assertTrue(
-                str(e).__contains__(
+                str(err).__contains__(
                     "The 'start' date must be before the 'end' date or be the same",
                 ),
             )
 
         # Test case 4: End date is in the future
-        future_date = (datetime.now() + timedelta(days=1)).isoformat()
+        future_date = (
+            datetime.now(timezone.utc).replace(tzinfo=None) + timedelta(days=1)
+        ).isoformat()
         try:
-            MetricsClient._build_query(
-                s,
+            client.get_metric(
                 "power_total_inst",
                 {
                     "time": {"start": "2024-10-28T05:03:14", "end": future_date},
                 },
             )
-        except Exception as e:
+        except ValueError as err:
             self.assertTrue(
-                str(e).__contains__("The 'end' date cannot be in the future"),
+                str(err).__contains__("The 'end' date cannot be in the future"),
             )
 
     @patch("jasmin_metrics_client.main.Elasticsearch")
-    def test_get_all_metrics_no_results(self, mock_elasticsearch: Mock) -> None:
+    def test_get_all_metrics_no_results(self, mockelasticsearch: Mock) -> None:
         """Test py:meth:`~jasmin_metrics_client.main.MetricsClient.get_all_metrics` handling of no results case.
 
         Mocks Elasticsearch `search` to return an empty aggregation bucket, simulating
         no metrics found. Verifies that:
         - The returned list is empty when no metrics are available.
         """
-        mock_search = mock_elasticsearch.return_value.search
+        mock_search = mockelasticsearch.return_value.search
         mock_search.return_value = ObjectApiResponse(
             meta=None,
             body={
@@ -360,14 +357,14 @@ class TestMetricsClient(unittest.TestCase):
         self.assertEqual(metrics, [])
 
     @patch("jasmin_metrics_client.main.Elasticsearch")
-    def test_get_metric_labels_no_labels(self, mock_elasticsearch: Mock) -> None:
+    def test_get_metric_labels_no_labels(self, mockelasticsearch: Mock) -> None:
         """Test py:meth:`~jasmin_metrics_client.main.MetricsClient.get_metric_labels` behavior when no labels are available for a metric.
 
         Mocks Elasticsearch `search` to return an empty list for a non-existent metric,
         simulating no labels. Verifies that:
         - The returned list is empty.
         """
-        mock_search = mock_elasticsearch.return_value.search
+        mock_search = mockelasticsearch.return_value.search
         mock_search.return_value = ObjectApiResponse(
             meta=None,
             body={"hits": {"hits": []}},
@@ -378,14 +375,14 @@ class TestMetricsClient(unittest.TestCase):
         self.assertEqual(labels, [])
 
     @patch("jasmin_metrics_client.main.Elasticsearch")
-    def test_get_metric_missing_keys(self, mock_elasticsearch: Mock) -> None:
+    def test_get_metric_missing_keys(self, mockelasticsearch: Mock) -> None:
         """Test py:meth:`~jasmin_metrics_client.main.MetricsClient.get_metric` when expected metric data is missing from the response.
 
         Mocks Elasticsearch `search` to return a response with missing metric keys.
         Verifies that:
         - The returned DataFrame is empty when metric values are missing.
         """
-        mock_search = mock_elasticsearch.return_value.search
+        mock_search = mockelasticsearch.return_value.search
         mock_search.return_value = ObjectApiResponse(
             meta=None,
             body={"hits": {"hits": [{"_source": {"prometheus": {"metrics": {}}}}]}},

@@ -1,6 +1,7 @@
-"""jasmin-metrics-client
+"""jasmin-metrics-client.
 
-A library to do requests to elastic search metric data
+A library to do requests to elastic search metric data.
 """
 
-from .main import MetricsClient as MetricsClient
+__all__ = ["MetricsClient"]
+from .main import MetricsClient
