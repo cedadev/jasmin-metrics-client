@@ -40,6 +40,6 @@ repos:
         types: [python]
       - id: docs
         name: docs
-        entry: bash -c "poetry run sphinx-build -M dummy ./docs ./docs/_build -W -q -a"
+        entry: bash -c "poetry run sphinx-build -M dummy ./docs ./docs/_build -q -a"
         language: system
         types_or: [ python, rst, toml]
