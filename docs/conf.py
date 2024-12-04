@@ -28,9 +28,6 @@ extensions = [
 ]
 
 templates_path = ["_templates"]
-exclude_patterns = [
-    "autoapi/jasmin_metrics_client/main/index.rst",
-]
 
 
 # -- Options for HTML output -------------------------------------------------
