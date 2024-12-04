@@ -7,6 +7,7 @@ __pycache__/
 *.so
 
 # Distribution / packaging
+_build/
 .Python
 build/
 develop-eggs/
@@ -50,6 +51,8 @@ coverage.xml
 .hypothesis/
 .pytest_cache/
 cover/
+tests/test_real_data.py
+docs/autoapi
 
 # Translations
 *.mo
