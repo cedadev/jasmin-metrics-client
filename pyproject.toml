@@ -67,9 +67,13 @@ target-version = ["py310", "py311", "py312", "py313"]
 line-length = 88
 indent-width = 4
 target-version = "py310"
+
 [tool.ruff.lint]
 select = ["ALL"]
-ignore = ["E501", "PT", "INP001", "A001"]
+ignore = ["E501", "PT", "INP001", "A001", "D416", "D417"]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
 
 [tool.ruff.format]
 docstring-code-format = true

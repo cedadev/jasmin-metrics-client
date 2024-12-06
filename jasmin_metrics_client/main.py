@@ -23,8 +23,7 @@ class MetricsClient:
     def __init__(self, token: str, timeout: int = 30) -> None:
         """Initialize the MetricsClient with an optional token for authentication.
 
-        Args:
-        ----
+        Args
             token (Optional[str]): The authentication token.
             timeout (int): The request timeout in seconds. Defaults to 30.
 
@@ -42,8 +41,8 @@ class MetricsClient:
                 retry_on_timeout=True,
             )
             self.search = Search(using=self.es)
-            error_message = "Elasticsearch client initialized successfully."
-            logging.debug(error_message)
+            message = "Elasticsearch client initialized successfully."
+            logging.debug(message)
         except ApiError as err:
             raise ApiError(
                 message=f"Unexpected error initializing Elasticsearch client: {err!s}",
