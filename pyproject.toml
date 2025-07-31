@@ -8,12 +8,13 @@ authors = [
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = ">=3.9,<=3.13"
+python = ">=3.9,<4.0"
 pydantic-settings = "^2.3.4"
 stac-pydantic = "^3.1.1"
 pandas = "^2.2.3"
 elasticsearch = "^8.15.1"
 elasticsearch-dsl = "^8.15.4"
+xattr = "^1.2.0"
 
 [tool.poetry.group.black.dependencies]
 black = "^24.4.2"
