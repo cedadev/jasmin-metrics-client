@@ -163,6 +163,7 @@ class MetricsClient:
                 return pd.DataFrame()
 
             timestamp = hit["@timestamp"]
+            metric_name = metric_name.lower()
             value = float(hit["prometheus"]["metrics"][metric_name])
             data.append({"timestamp": timestamp, "value": value})
 
